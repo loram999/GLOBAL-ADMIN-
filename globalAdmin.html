@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>GLOBAL TRX - ADMIN</title>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: #0b0e14;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Login Section */
+        .login-section {
+            background: #1a1f2b;
+            border-radius: 24px;
+            padding: 32px 20px;
+            border: 1px solid #2f3542;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .login-input {
+            background: #0f131a;
+            border: 1px solid #2f3542;
+            border-radius: 16px;
+            padding: 16px 20px;
+            font-size: 16px;
+            color: #ffffff;
+            outline: none;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .login-input:focus {
+            border-color: #3b7cff;
+        }
+
+        .login-button {
+            background: #3b7cff;
+            border: none;
+            border-radius: 16px;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .login-button:active {
+            background: #2a5fcc;
+            transform: scale(0.98);
+        }
+
+        .login-message {
+            color: #ff4d4d;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 16px;
+            min-height: 20px;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            display: none;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(145deg, #1e2432, #151b26);
+            border-radius: 24px;
+            padding: 24px 20px;
+            margin-bottom: 16px;
+            border: 1px solid #2f3542;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .logout-button {
+            background: #ff4d4d;
+            border: none;
+            border-radius: 30px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .logout-button:active {
+            background: #e03d3d;
+        }
+
+        /* Stats Card */
+        .stats-card {
+            background: #1a1f2b;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #2f3542;
+        }
+
+        .stats-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #8f9bb3;
+            margin-bottom: 6px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3b7cff;
+        }
+
+        .stat-number.red {
+            color: #ff4d4d;
+        }
+
+        /* Key Management */
+        .key-section {
+            background: #1a1f2b;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #2f3542;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .key-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .key-form input {
+            background: #0f131a;
+            border: 1px solid #2f3542;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 14px;
+            color: #ffffff;
+            outline: none;
+        }
+
+        .key-form input:focus {
+            border-color: #3b7cff;
+        }
+
+        .create-button {
+            background: #3b7cff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .create-button:active {
+            background: #2a5fcc;
+        }
+
+        /* Keys List */
+        .keys-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .key-item {
+            background: #0f131a;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid #2f3542;
+        }
+
+        .key-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .key-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #3b7cff;
+        }
+
+        .key-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 30px;
+            background: #1a5f3a;
+            color: #4caf50;
+        }
+
+        .key-status.expired {
+            background: #5f2a2a;
+            color: #ff4d4d;
+        }
+
+        .key-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .key-detail {
+            color: #8f9bb3;
+        }
+
+        .key-detail span {
+            color: #ffffff;
+            font-weight: 500;
+            margin-left: 4px;
+        }
+
+        .key-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .delete-button {
+            background: #ff4d4d;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #ffffff;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .delete-button:active {
+            background: #e03d3d;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8f9bb3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Section -->
+        <div id="loginSection" class="login-section">
+            <div class="login-title">Admin Login</div>
+            <input type="password" id="adminPassword" class="login-input" placeholder="Enter password">
+            <button class="login-button" onclick="adminLogin()">Login</button>
+            <div id="loginMessage" class="login-message"></div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="admin-panel">
+            <!-- Header -->
+            <div class="header">
+                <h1>Admin Panel</h1>
+                <button class="logout-button" onclick="logout()">Logout</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-card">
+                <div class="stats-title">Key Statistics</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Total</div>
+                        <div class="stat-number" id="totalKeys">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Active</div>
+                        <div class="stat-number" id="activeKeys">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Expired</div>
+                        <div class="stat-number red" id="expiredKeys">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Key -->
+            <div class="key-section">
+                <div class="section-title">Create New Key</div>
+                <div class="key-form">
+                    <input type="text" id="keyName" placeholder="Key (e.g., PRO2024)">
+                    <input type="date" id="keyExpiry">
+                    <input type="number" id="keyLimit" placeholder="Usage limit" value="1000">
+                    <button class="create-button" onclick="createKey()">Create Key</button>
+                </div>
+            </div>
+
+            <!-- Keys List -->
+            <div class="key-section">
+                <div class="section-title">Active Keys</div>
+                <div id="keysContainer" class="keys-list">
+                    <div class="loading">Loading keys...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiUJPpEmepO0XiWmhPA8rMZjioB5Y2wr4",
+            authDomain: "global-trx-db.firebaseapp.com",
+            databaseURL: "https://global-trx-db-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "global-trx-db",
+            storageBucket: "global-trx-db.firebasestorage.app",
+            messagingSenderId: "20311434523",
+            appId: "1:20311434523:web:b5cd2eded2d7cd9e011fbe"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Admin Password
+        const ADMIN_PASSWORD = "globaladmin2024";
+
+        // Login Function
+        function adminLogin() {
+            const password = document.getElementById('adminPassword').value;
+            const messageEl = document.getElementById('loginMessage');
+            
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                loadKeys();
+                
+                // Auto refresh every 30 seconds
+                setInterval(loadKeys, 30000);
+            } else {
+                messageEl.textContent = 'Invalid password';
+            }
+        }
+
+        // Logout Function
+        function logout() {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        // Load Keys
+        async function loadKeys() {
+            try {
+                const snapshot = await database.ref('/global_trx/keys').once('value');
+                const keys = snapshot.val() || {};
+                displayKeys(keys);
+                updateStats(keys);
+            } catch (error) {
+                console.error('Load error:', error);
+            }
+        }
+
+        // Display Keys
+        function displayKeys(keys) {
+            const container = document.getElementById('keysContainer');
+            container.innerHTML = '';
+            
+            const today = new Date();
+            const keyEntries = Object.entries(keys).sort((a, b) => {
+                return new Date(b[1].expiry) - new Date(a[1].expiry);
+            });
+            
+            if (keyEntries.length === 0) {
+                container.innerHTML = '<div class="loading">No keys found</div>';
+                return;
+            }
+            
+            keyEntries.forEach(([key, data]) => {
+                const expiry = new Date(data.expiry);
+                const isExpired = expiry < today;
+                const usedPercent = Math.round((data.used / data.limit) * 100);
+                
+                const keyItem = document.createElement('div');
+                keyItem.className = 'key-item';
+                keyItem.innerHTML = `
+                    <div class="key-header">
+                        <div class="key-name">${key}</div>
+                        <div class="key-status ${isExpired ? 'expired' : ''}">
+                            ${isExpired ? 'Expired' : 'Active'}
+                        </div>
+                    </div>
+                    <div class="key-details">
+                        <div class="key-detail">Expiry: <span>${data.expiry}</span></div>
+                        <div class="key-detail">Used: <span>${data.used || 0}/${data.limit}</span></div>
+                        <div class="key-detail">Usage: <span>${usedPercent}%</span></div>
+                    </div>
+                    <div class="key-actions">
+                        <button class="delete-button" onclick="deleteKey('${key}')">Delete Key</button>
+                    </div>
+                `;
+                
+                container.appendChild(keyItem);
+            });
+        }
+
+        // Update Statistics
+        function updateStats(keys) {
+            const today = new Date();
+            let total = 0, active = 0, expired = 0;
+            
+            Object.values(keys).forEach(data => {
+                total++;
+                const expiry = new Date(data.expiry);
+                if (expiry >= today) {
+                    active++;
+                } else {
+                    expired++;
+                }
+            });
+            
+            document.getElementById('totalKeys').textContent = total;
+            document.getElementById('activeKeys').textContent = active;
+            document.getElementById('expiredKeys').textContent = expired;
+        }
+
+        // Create Key
+        async function createKey() {
+            const key = document.getElementById('keyName').value.trim();
+            const expiry = document.getElementById('keyExpiry').value;
+            const limit = document.getElementById('keyLimit').value;
+            
+            if (!key || !expiry || !limit) {
+                alert('Please fill all fields');
+                return;
+            }
+            
+            try {
+                await database.ref('/global_trx/keys/' + key).set({
+                    expiry: expiry,
+                    limit: parseInt(limit),
+                    used: 0,
+                    created: new Date().toISOString()
+                });
+                
+                alert('Key created successfully');
+                document.getElementById('keyName').value = '';
+                loadKeys();
+                
+            } catch (error) {
+                console.error('Create error:', error);
+                alert('Error creating key');
+            }
+        }
+
+        // Delete Key
+        async function deleteKey(key) {
+            if (!confirm('Delete key: ' + key + '?')) {
+                return;
+            }
+            
+            try {
+                await database.ref('/global_trx/keys/' + key).remove();
+                alert('Key deleted');
+                loadKeys();
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Error deleting key');
+            }
+        }
+
+        // Enter key for login
+        document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                adminLogin();
+            }
+        });
+    </script>
+</body>
+</html>
